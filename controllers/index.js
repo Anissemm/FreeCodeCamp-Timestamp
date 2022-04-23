@@ -1,24 +1,27 @@
-const moment = require('moment');
-
 const getDateObject = (req, res) => {
     const { date } = req.params;
     const isTimestamp = /^\d+$/;
-    const format = 'ddd, DD MMM YYYY HH:mm:ss [GMT]';
+    
+    if (date === undefined) {
+        const time = Date.now();
+        return res.json({ unix: time, utc: new Date(time).toUTCString() });
+    }
 
     if (isTimestamp.test(date)) {
-        const time = moment(parseInt(date));
+        const time = new Date(parseInt(date));
 
-        return res.json({ unix: time.valueOf(), utc: time.format(format) });
+        return res.json({ unix: time.getTime(), utc: time.toUTCString() });
     }
 
-    if (moment(date).isValid()) {
-        const time = moment(date);
+    if (!isNaN(Date.parse(date))) {
+        const time = new Date(date);
 
-        return res.json({ unix: time.valueOf(), utc: time.format(format) });
+        return res.json({ unix: time.getTime(), utc: time.toUTCString() });
     }
 
-    return res.status(500).json({ utc: 'invalid entered value' });
+    return res.status(500).json({ error: 'Invalid Date' });
 }
+
 
 module.exports = {
     getDateObject
